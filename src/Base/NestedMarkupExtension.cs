@@ -42,6 +42,13 @@ namespace XAMLMarkupExtensions.Base
         /// </summary>
         private int rootObjectHashCode;
 
+        protected Dictionary<TargetInfo, object> ChildExtensions
+        {
+            get;
+            set;
+        } = new Dictionary<TargetInfo, object>();
+
+
         /// <summary>
         /// Get the target objects and properties.
         /// </summary>
@@ -237,34 +244,34 @@ namespace XAMLMarkupExtensions.Base
                 return null;
 
             // Search for the target in the target object list
-            WeakReference wr = (from kvp in targetObjects
-                                where kvp.Key.Target == targetObject
-                                select kvp.Key).FirstOrDefault();
+            //WeakReference wr = (from kvp in targetObjects
+            //                    where kvp.Key.Target == targetObject
+            //                    select kvp.Key).FirstOrDefault();
 
-            if (wr == null)
-            {
-                // If it's the first object, call the appropriate action
-                if (targetObjects.Count == 0)
-                {
-                    if (OnFirstTarget != null)
-                        OnFirstTarget();
-                }
+            //if (wr == null)
+            //{
+            //    // If it's the first object, call the appropriate action
+            //    if (targetObjects.Count == 0)
+            //    {
+            //        if (OnFirstTarget != null)
+            //            OnFirstTarget();
+            //    }
 
-                // Add the target as a WeakReference to the target object list
-                wr = new WeakReference(targetObject);
-                targetObjects.Add(wr, new Dictionary<Tuple<object, int>, Type>());
+            //    // Add the target as a WeakReference to the target object list
+            //    wr = new WeakReference(targetObject);
+            //    targetObjects.Add(wr, new Dictionary<Tuple<object, int>, Type>());
 
-                // Add this extension to the ObjectDependencyManager to ensure the lifetime along with the target object
-                ObjectDependencyManager.AddObjectDependency(wr, this);
-            }
+            //    // Add this extension to the ObjectDependencyManager to ensure the lifetime along with the target object
+            //    //ObjectDependencyManager.AddObjectDependency(wr, this);
+            //}
 
             // Finally, add the target prop and info to the list of this WeakReference
-            Tuple<object, int> tuple = new Tuple<object, int>(targetProperty, targetPropertyIndex);
-            if (!targetObjects[wr].ContainsKey(tuple))
-                targetObjects[wr].Add(tuple, targetPropertyType);
+            //Tuple<object, int> tuple = new Tuple<object, int>(targetProperty, targetPropertyIndex);
+            //if (!targetObjects[wr].ContainsKey(tuple))
+            //    targetObjects[wr].Add(tuple, targetPropertyType);
 
             // Sign up to the EndpointReachedEvent only if the markup extension wants to do so.
-            EndpointReachedEvent.AddListener(rootObjectHashCode, this);
+            //EndpointReachedEvent.AddListener(rootObjectHashCode, this);
 
             // Create the target info
             TargetInfo info = new TargetInfo(targetObject, targetProperty, targetPropertyType, targetPropertyIndex);
@@ -272,14 +279,26 @@ namespace XAMLMarkupExtensions.Base
             // Return the result of FormatOutput
             object result = null;
 
-            if (info.IsEndpoint)
+            //if (info.IsEndpoint)
+            //{
+            //    var args = new EndpointReachedEventArgs(info);
+            //    EndpointReachedEvent.Invoke(rootObjectHashCode, this, args);
+            //    result = args.EndpointValue;
+            //}
+            //else
+
+            if (!info.IsEndpoint)
             {
-                var args = new EndpointReachedEventArgs(info);
-                EndpointReachedEvent.Invoke(rootObjectHashCode, this, args);
-                result = args.EndpointValue;
+                if (info.TargetObject is NestedMarkupExtension nestedMarkupExtension)
+                {
+                    nestedMarkupExtension.ChildExtensions.Add(info, this);
+                }
             }
             else
+            {
+                UpdateChildExtensionValue(info);
                 result = FormatOutput(endPoint, info);
+            }
 
             // Check type
             if (typeof(IList).IsAssignableFrom(targetPropertyType))
@@ -292,6 +311,26 @@ namespace XAMLMarkupExtensions.Base
                 return Activator.CreateInstance(targetPropertyType);
             else
                 return null;
+        }
+
+        protected void UpdateChildExtensionValue(TargetInfo endPoint)
+        {
+            foreach (var childExtensionKvP in ChildExtensions.ToDictionary(kvp => kvp.Key, kvp => kvp.Value))
+            {
+                if (childExtensionKvP.Value is NestedMarkupExtension childExtension)
+                {
+                    // Update all child extension values first..
+                    if (childExtension.ChildExtensions.Count > 0)
+                    {
+                        childExtension.UpdateChildExtensionValue(endPoint);
+                    }
+
+                    var info = childExtensionKvP.Key;
+                    var updatedValue = childExtension.FormatOutput(endPoint, info);
+                    SetPropertyValue(updatedValue, info, false);
+                    ChildExtensions.Remove(info);
+                }
+            }
         }
 
         /// <summary>

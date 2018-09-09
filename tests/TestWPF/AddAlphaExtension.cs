@@ -7,6 +7,7 @@
     {
         public byte Alpha { get; set; }
         public SolidColorBrush Brush { get; set; }
+        public SolidColorBrush SecondBrush { get; set; }
 
         public override object FormatOutput(TargetInfo endPoint, TargetInfo info)
         {
@@ -14,14 +15,13 @@
             if (!typeof(Brush).IsAssignableFrom(info.TargetPropertyType))
                 return null;
 
-            if (Brush == null)
+            if (Brush == null && SecondBrush == null)
                 return null;
 
-            var color = Brush.Color;
+            var color = SecondBrush?.Color ?? Brush.Color;
             color.A = Alpha;
-            Brush.Color = color;
 
-            return Brush;
+            return new SolidColorBrush(color);
         }
 
         protected override bool UpdateOnEndpoint(TargetInfo endpoint)

@@ -30,10 +30,10 @@
             <RowDefinition />
         </Grid.RowDefinitions>
 
-        <Label Grid.Row="0" Grid.Column="0" Content="1st Row" Background="{ext:AddAlpha Alpha=125, Brush={n:AlternatingGridColor ColorEven=Red, ColorOdd=Green}}" />
+        <Label Grid.Row="0" Grid.Column="0" Content="1st Row" Background="{ext:AddAlpha Alpha=125, Brush={n:AlternatingGridColor ColorEven=Red, ColorOdd=Green}, SecondBrush={n:AlternatingGridColor ColorEven=Blue, ColorOdd=Yellow}}" />
         <Label Grid.Row="1" Grid.Column="0" Content="2nd Row" Background="{ext:AddAlpha Alpha=125, Brush={n:AlternatingGridColor ColorEven=Red, ColorOdd=Green}}" />
         <Label Grid.Row="2" Grid.Column="0" Content="3rd Row" Background="{ext:AddAlpha Alpha=125, Brush={n:AlternatingGridColor ColorEven=Red, ColorOdd=Green}}" />
-        <Label Grid.Row="3" Grid.Column="0" Content="4th Row" Background="{ext:AddAlpha Alpha=125, Brush={n:AlternatingGridColor ColorEven=Red, ColorOdd=Green}}" />
+        <Label Grid.Row="3" Grid.Column="0" Content="4th Row" Background="{ext:AddAlpha Alpha=125, Brush={n:AlternatingGridColor ColorEven=Red, ColorOdd=Green}, SecondBrush={n:AlternatingGridColor ColorEven=Blue, ColorOdd=Yellow}}" />
         <Label Grid.Row="4" Grid.Column="0" Content="5th Row" Background="{ext:AddAlpha Alpha=125, Brush={n:AlternatingGridColor ColorEven=Red, ColorOdd=Green}}" />
 
         <Label Grid.Row="5" Content="{Binding TestString, Source={n:Static p:Settings.Default}}" />
